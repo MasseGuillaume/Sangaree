@@ -22,5 +22,5 @@ class YoloSuite extends FunSuite with DiffAssertions {
     }
   }
   check("small")
-  check("github")
+  // check("github")
 }

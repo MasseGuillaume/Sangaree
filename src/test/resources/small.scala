@@ -1,1 +1,1 @@
-case class Human(name: String)
+case class Human(name: Option[String])

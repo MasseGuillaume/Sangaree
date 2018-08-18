@@ -1,41 +1,98 @@
-import sangria.ast._
+import sangria.{ast => sangria}
+import scala.meta
 import scala.meta._
 
 object Sangaree {
-  def apply(document: Document): Source = {
-    // TODO
+  def param(name: String, tpe: Type): Term.Param = 
+    Term.Param(Nil, Term.Name(name), Some(tpe),None)
 
+  def emptyTemplate: Template = 
+    Template(Nil,Nil,Self(Name.Anonymous(),None),Nil)
 
-    // schema.definitions.foreach{
-    //   case d: DirectiveDefinition                => println("DirectiveDefinition")
-    //   case d: EnumTypeDefinition                 => println("EnumTypeDefinition")
-    //   case d: EnumTypeExtensionDefinition        => println("EnumTypeExtensionDefinition")
-    //   case d: FragmentDefinition                 => println("FragmentDefinition")
-    //   case d: InputObjectTypeDefinition          => println("InputObjectTypeDefinition")
-    //   case d: InputObjectTypeExtensionDefinition => println("InputObjectTypeExtensionDefinition")
-    //   case d: InterfaceTypeDefinition            => println("InterfaceTypeDefinition")
-    //   case d: ObjectTypeDefinition               => 
-    //     println(d.name)
-    //     println(d.interfaces)
-    //     println(d.fields)
-    //     println(d.directives)
-    //     println(d.description)
-    //     println(d.comments)
-    //     println(d.trailingComments)
-    //     println(d.location)
+  def caseClass(name: String, params: List[Term.Param]): Defn.Class = {
+    Defn.Class(
+      List(Mod.Case()),
+      Type.Name(name),
+      Nil,
+      Ctor.Primary(
+        Nil,
+        Name.Anonymous(),
+        List(params)
+      ),
+      emptyTemplate
+    )
+  }
 
-    //   case d: ObjectTypeExtensionDefinition      => println("ObjectTypeExtensionDefinition")
-    //   case d: OperationDefinition                => println("OperationDefinition")
-    //   case d: ScalarTypeDefinition               => println("ScalarTypeDefinition")
-    //   case d: ScalarTypeExtensionDefinition      => println("ScalarTypeExtensionDefinition")
-    //   case d: SchemaDefinition                   => println("SchemaDefinition")
-    //   case d: SchemaExtensionDefinition          => println("SchemaExtensionDefinition")
-    //   case d: UnionTypeDefinition                => println("UnionTypeDefinition")
-    //   case d: UnionTypeExtensionDefinition       => println("UnionTypeExtensionDefinition")
-    //   case d: InterfaceTypeExtensionDefinition   => println("InterfaceTypeExtensionDefinition")
-    // }
+  def option(tpe: meta.Type): meta.Type = 
+    Type.Apply(Type.Name("Option"),List(tpe))
 
+  def list(tpe: meta.Type): meta.Type = 
+    Type.Apply(Type.Name("List"),List(tpe))
+    
+  def tpe(t: sangria.Type): meta.Type = {
+    t match {
+      case sangria.NamedType(name, _) => option(Type.Name(name))
+      case sangria.NotNullType(t2, _) => tpe(t2)
+      case sangria.ListType(t2, _)    => list(tpe(t2)) 
+    }
+  }
+   
+  def fields(fields: Vector[sangria.FieldDefinition]): List[Term.Param] = {
+    fields.iterator.map{
+      case d: sangria.FieldDefinition =>
+        param(d.name, tpe(d.fieldType))
+    }.toList
+  }
 
-    Source(Nil)
+  def definitions(definitions: Vector[sangria.Definition]): List[Stat] = {
+    definitions.iterator.map{
+      case d: sangria.DirectiveDefinition =>
+        ???
+      case d: sangria.EnumTypeDefinition =>
+        ???
+      case d: sangria.EnumTypeExtensionDefinition =>
+        ???
+      case d: sangria.FragmentDefinition =>
+        ???
+      case d: sangria.InputObjectTypeDefinition =>
+        ???
+      case d: sangria.InputObjectTypeExtensionDefinition =>
+        ???
+      case d: sangria.InterfaceTypeDefinition =>
+        ???
+      case d: sangria.ObjectTypeDefinition =>
+        caseClass(d.name, fields(d.fields))
+
+      case d: sangria.ObjectTypeExtensionDefinition =>
+        ???
+
+      case d: sangria.OperationDefinition =>
+        ???
+
+      case d: sangria.ScalarTypeDefinition =>
+        ???
+
+      case d: sangria.ScalarTypeExtensionDefinition =>
+        ???
+
+      case d: sangria.SchemaDefinition =>
+        ???
+
+      case d: sangria.SchemaExtensionDefinition =>
+        ???
+
+      case d: sangria.UnionTypeDefinition =>
+        ???
+
+      case d: sangria.UnionTypeExtensionDefinition =>
+        ???
+
+      case d: sangria.InterfaceTypeExtensionDefinition =>
+        ???
+    }.toList
+  }
+
+  def apply(document: sangria.Document): Source = {
+    Source(definitions(document.definitions))
   }
 }
