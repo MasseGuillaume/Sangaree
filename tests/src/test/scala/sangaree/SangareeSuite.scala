@@ -27,7 +27,7 @@ class SangareeSuite extends FunSuite with DiffAssertions {
       val obtained = Generator(schema, file).toString
       val expected = slurp(Paths.get(scalaSourceDirectory).resolve(s"$file.scala"))
 
-      Files.write(Paths.get(s"obtained/$file.scala"), obtained.getBytes)
+      // Files.write(Paths.get(s"obtained/$file.scala"), obtained.getBytes)
 
       assertNoDiff(obtained, expected)
     }
