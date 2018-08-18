@@ -1,1 +1,0 @@
-case class Human(name: Option[String])
